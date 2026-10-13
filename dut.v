@@ -15,7 +15,7 @@ module abc (
 
     reg [2:0] p_state, n_state;
 
-    // 1. Sequential state register
+    // Sequential state register
     always @(posedge clk or negedge rst) begin
         if (!rst)
             p_state <= S0;
@@ -23,26 +23,49 @@ module abc (
             p_state <= n_state;
     end
 
-    // 2. Combinational next-state logic
+    // Combinational next-state logic using case and if statements
     always @(*) begin
-        // Default: hold current state (prevents latches and handles en = 0)
+        // Default assignment prevents latches when en = 0
         n_state = p_state;
 
         if (en) begin
             case (p_state)
-                // dir = 0: count up (+1) | dir = 1: count down (-1 mod 6)
-                S0: n_state = dir ? S5 : S1;
-                S1: n_state = dir ? S0 : S2;
-                S2: n_state = dir ? S1 : S3;
-                S3: n_state = dir ? S2 : S4;
-                S4: n_state = dir ? S3 : S5;
-                S5: n_state = dir ? S4 : S0;
+                S0: begin
+                    if (dir) n_state = S5; // count down
+                    else     n_state = S1; // count up
+                end
+                
+                S1: begin
+                    if (dir) n_state = S0;
+                    else     n_state = S2;
+                end
+                
+                S2: begin
+                    if (dir) n_state = S1;
+                    else     n_state = S3;
+                end
+                
+                S3: begin
+                    if (dir) n_state = S2;
+                    else     n_state = S4;
+                end
+                
+                S4: begin
+                    if (dir) n_state = S3;
+                    else     n_state = S5;
+                end
+                
+                S5: begin
+                    if (dir) n_state = S4;
+                    else     n_state = S0;
+                end
+                
                 default: n_state = S0;
             endcase
         end
     end
 
-    // 3. Continuous output assignment
+    // Continuous output assignment
     assign current_state = p_state;
 
 endmodule
